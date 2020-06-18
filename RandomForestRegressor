@@ -1,0 +1,92 @@
+import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt 
+%matplotlib inline 
+
+df = pd.read_csv("train_data.csv")
+df.head()
+
+data=df[["Engine HP","Engine Cylinders","Number of Doors","highway MPG","city mpg","Popularity","Year"]]
+data.head()
+
+from sklearn.preprocessing import LabelEncoder
+lb = LabelEncoder()
+data['TransmissionType_Numeric']=lb.fit_transform(df['Transmission Type'])
+data['Driven_Wheels_Numeric']=lb.fit_transform(df['Driven_Wheels'])
+data['Vehicle Size_Numeric']=lb.fit_transform(df['Vehicle Size'])
+
+data.head(10)
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+
+
+X = data
+y = df["MSRP"]
+
+
+X=X.fillna(X.mean())
+y=y.fillna(y.mean())
+
+X = X.to_numpy()
+X.ndim
+
+y = y.to_numpy()
+y.ndim
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+
+model = RandomForestRegressor()
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+
+pred
+
+r2_score(y_test, pred)*100  #(95%)
+
+
+plt.figure(figsize= (12, 12))
+plt.scatter(pred,y_test)
+plt.xlabel("New Predicted Price (MSRP)")
+plt.ylabel("Old Price (MSRP)")
+
+
+
+
+df2=pd.read_csv('test_data.csv')	
+
+
+data2=df2[["Engine HP","Engine Cylinders","Number of Doors","highway MPG","city mpg","Popularity","Year"]]
+data2['TransmissionType_Numeric']=lb.fit_transform(df2['Transmission Type'])
+data2['Driven_Wheels_Numeric']=lb.fit_transform(df2['Driven_Wheels'])
+data2['Vehicle Size_Numeric']=lb.fit_transform(df2['Vehicle Size'])
+
+
+data2.head()
+
+
+data2=data2.fillna(data2.mean())
+
+
+pred2=model.predict(data2)
+
+
+pred2
+
+
+df2["MSRP_predicted"] = pred2
+
+
+df2.head()
+
+
+
+df2=df2.drop(["MSRP"],axis=1)
+
+
+df2.head()
+
+
+df2.to_csv("Final_MSRP_predicted2.csv",index=False)
